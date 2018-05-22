@@ -1,9 +1,16 @@
 /* global describe, it */
 
-var assert = require('assert')
-var bitcoin = require('../../')
-var regtestUtils = require('./_regtest')
-var regtest = regtestUtils.network
+let assert = require('assert')
+let bitcoin = require('../../')
+let regtestUtils = require('./_regtest')
+let regtest = regtestUtils.network
+
+// TODO: remove
+let baddress = bitcoin.address
+let bcrypto = bitcoin.crypto
+function getAddress (node) {
+  return baddress.toBase58Check(bcrypto.hash160(node.getPublicKeyBuffer()), bitcoin.networks.bitcoin.pubKeyHash)
+}
 
 function rng () {
   return Buffer.from('YT8dAtK4d16A3P1z+TpwB2jJ4aFH3g9M1EioIBkLEV4=', 'base64')
@@ -52,17 +59,17 @@ describe('bitcoinjs-lib (transactions)', function () {
     var aliceChange = bitcoin.ECPair.makeRandom({ network: regtest, rng: rng })
 
     // give Alice 2 unspent outputs
-    regtestUtils.faucet(alice1.getAddress(), 5e4, function (err, unspent0) {
+    regtestUtils.faucet(getAddress(alice1), 5e4, function (err, unspent0) {
       if (err) return done(err)
 
-      regtestUtils.faucet(alice2.getAddress(), 7e4, function (err, unspent1) {
+      regtestUtils.faucet(getAddress(alice2), 7e4, function (err, unspent1) {
         if (err) return done(err)
 
         var txb = new bitcoin.TransactionBuilder(regtest)
         txb.addInput(unspent0.txId, unspent0.vout) // alice1 unspent
         txb.addInput(unspent1.txId, unspent1.vout) // alice2 unspent
         txb.addOutput('mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf', 8e4) // the actual "spend"
-        txb.addOutput(aliceChange.getAddress(), 1e4) // Alice's change
+        txb.addOutput(getAddress(aliceChange), 1e4) // Alice's change
         // (in)(4e4 + 2e4) - (out)(1e4 + 3e4) = (fee)2e4 = 20000, this is the miner fee
 
         // Alice signs each input with the respective private keys
@@ -81,7 +88,7 @@ describe('bitcoinjs-lib (transactions)', function () {
 
     var keyPair = bitcoin.ECPair.makeRandom({ network: regtest })
 
-    regtestUtils.faucet(keyPair.getAddress(), 2e5, function (err, unspent) {
+    regtestUtils.faucet(getAddress(keyPair), 2e5, function (err, unspent) {
       if (err) return done(err)
 
       var txb = new bitcoin.TransactionBuilder(regtest)
@@ -228,7 +235,7 @@ describe('bitcoinjs-lib (transactions)', function () {
 
     tx.ins.forEach(function (input, i) {
       var keyPair = keyPairs[i]
-      var prevOutScript = bitcoin.address.toOutputScript(keyPair.getAddress())
+      var prevOutScript = bitcoin.address.toOutputScript(getAddress(keyPair))
       var scriptSig = bitcoin.script.pubKeyHash.input.decode(input.script)
       var ss = bitcoin.script.signature.decode(scriptSig.signature)
       var hash = tx.hashForSignature(i, prevOutScript, ss.hashType)

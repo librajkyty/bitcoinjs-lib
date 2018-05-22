@@ -67,10 +67,17 @@ function verify (txo, callback) {
   })
 }
 
+// TODO: remove
+let baddress = bitcoin.address
+let bcrypto = bitcoin.crypto
+function getAddress (node) {
+  return baddress.toBase58Check(bcrypto.hash160(node.getPublicKeyBuffer()), bitcoin.networks.bitcoin.pubKeyHash)
+}
+
 function randomAddress () {
-  return bitcoin.ECPair.makeRandom({
+  return getAddress(bitcoin.ECPair.makeRandom({
     network: bitcoin.networks.testnet
-  }).getAddress()
+  }))
 }
 
 module.exports = {

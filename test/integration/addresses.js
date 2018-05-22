@@ -1,27 +1,33 @@
 /* global describe, it */
 
-var assert = require('assert')
-var bigi = require('bigi')
-var bitcoin = require('../../')
-var dhttp = require('dhttp/200')
+let assert = require('assert')
+let bitcoin = require('../../')
+let dhttp = require('dhttp/200')
 
 // deterministic RNG for testing only
 function rng () { return Buffer.from('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz') }
 
+// TODO: remove
+let baddress = bitcoin.address
+let bcrypto = bitcoin.crypto
+function getAddress (node) {
+  return baddress.toBase58Check(bcrypto.hash160(node.getPublicKeyBuffer()), bitcoin.networks.bitcoin.pubKeyHash)
+}
+
 describe('bitcoinjs-lib (addresses)', function () {
   it('can generate a random address', function () {
     var keyPair = bitcoin.ECPair.makeRandom({ rng: rng })
-    var address = keyPair.getAddress()
+    var address = getAddress(keyPair)
 
     assert.strictEqual(address, '1F5VhMHukdnUES9kfXqzPzMeF1GPHKiF64')
   })
 
   it('can generate an address from a SHA256 hash', function () {
     var hash = bitcoin.crypto.sha256(Buffer.from('correct horse battery staple'))
-    var d = bigi.fromBuffer(hash)
 
-    var keyPair = new bitcoin.ECPair(d)
-    var address = keyPair.getAddress()
+    var keyPair = bitcoin.ECPair.makeRandom({ rng: () => hash })
+    var address = getAddress(keyPair)
+
     // Generating addresses from SHA256 hashes is not secure if the input to the hash function is predictable
     // Do not use with predictable inputs
     assert.strictEqual(address, '1C7zdTfnkzmr13HfA2vNm5SJYRK6nEKyq8')
@@ -29,7 +35,7 @@ describe('bitcoinjs-lib (addresses)', function () {
 
   it('can import an address via WIF', function () {
     var keyPair = bitcoin.ECPair.fromWIF('Kxr9tQED9H44gCmp6HAdmemAzU3n84H3dGkuWTKvE23JgHMW8gct')
-    var address = keyPair.getAddress()
+    var address = getAddress(keyPair)
 
     assert.strictEqual(address, '19AAjaTUbRjQCMuVczepkoPswiZRhjtg31')
   })
@@ -100,7 +106,7 @@ describe('bitcoinjs-lib (addresses)', function () {
 
   it('can support the retrieval of transactions for an address (via 3PBP)', function (done) {
     var keyPair = bitcoin.ECPair.makeRandom()
-    var address = keyPair.getAddress()
+    var address = getAddress(keyPair)
 
     dhttp({
       method: 'POST',
@@ -123,7 +129,7 @@ describe('bitcoinjs-lib (addresses)', function () {
     var testnet = bitcoin.networks.testnet
     var keyPair = bitcoin.ECPair.makeRandom({ network: testnet, rng: rng })
     var wif = keyPair.toWIF()
-    var address = keyPair.getAddress()
+    var address = getAddress(keyPair)
 
     assert.strictEqual(address, 'mubSzQNtZfDj1YdNP6pNDuZy6zs6GDn61L')
     assert.strictEqual(wif, 'cRgnQe9MUu1JznntrLaoQpB476M8PURvXVQB5R2eqms5tXnzNsrr')
@@ -133,7 +139,7 @@ describe('bitcoinjs-lib (addresses)', function () {
     var litecoin = bitcoin.networks.litecoin
     var keyPair = bitcoin.ECPair.makeRandom({ network: litecoin, rng: rng })
     var wif = keyPair.toWIF()
-    var address = keyPair.getAddress()
+    var address = getAddress(keyPair)
 
     assert.strictEqual(address, 'LZJSxZbjqJ2XVEquqfqHg1RQTDdfST5PTn')
     assert.strictEqual(wif, 'T7A4PUSgTDHecBxW1ZiYFrDNRih2o7M8Gf9xpoCgudPF9gDiNvuS')

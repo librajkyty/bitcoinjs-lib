@@ -1,14 +1,15 @@
 /* global describe, it */
 
-var assert = require('assert')
+let assert = require('assert')
 let bip32 = require('bip32')
-var bip39 = require('bip39')
-var bitcoin = require('../../')
+let bip39 = require('bip39')
+let bitcoin = require('../../')
 
-var baddress = bitcoin.address
-var bcrypto = bitcoin.crypto
+// TODO: remove
+let baddress = bitcoin.address
+let bcrypto = bitcoin.crypto
 function getAddress (node) {
-  return baddress.toBase58Check(bcrypto.hash160(node.publicKey), bitcoin.networks.bitcoin.pubKeyHash)
+  return baddress.toBase58Check(bcrypto.hash160(node.getPublicKeyBuffer()), bitcoin.networks.bitcoin.pubKeyHash)
 }
 
 describe('bitcoinjs-lib (BIP32)', function () {

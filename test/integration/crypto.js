@@ -30,7 +30,10 @@ describe('bitcoinjs-lib (crypto)', function () {
       assert(publicKey.verify(m, scriptSignature.signature), 'Invalid m')
 
       // store the required information
-      input.signature = scriptSignature.signature
+      input.signature = {
+        r: bigi.fromBuffer(scriptSignature.signature.slice(0, 32)),
+        s: bigi.fromBuffer(scriptSignature.signature.slice(32, 64))
+      }
       input.z = bigi.fromBuffer(m)
     })
 
